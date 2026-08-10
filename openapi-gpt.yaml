@@ -13,7 +13,23 @@ components:
   schemas:
     Lead:
       type: object
-      additionalProperties: true
+      properties:
+        id: {type: string, format: uuid}
+        lead_number: {type: string}
+        name: {type: [string, "null"]}
+        phone: {type: [string, "null"]}
+        email: {type: [string, "null"]}
+        created_at: {type: string, format: date-time}
+        lead_status: {type: [string, "null"]}
+        stage: {type: [string, "null"]}
+        stage_label: {type: [string, "null"]}
+        source: {type: [string, "null"]}
+        source_label: {type: [string, "null"]}
+        program: {type: [string, "null"]}
+        heat: {type: [string, "null"]}
+        score: {type: [integer, "null"]}
+        assigned_to: {type: [string, "null"]}
+      required: [id, lead_number, created_at]
     LeadList:
       type: object
       properties:
