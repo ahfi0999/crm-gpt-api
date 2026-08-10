@@ -97,3 +97,64 @@ paths:
         - {name: limit, in: query, schema: {type: integer, minimum: 1, maximum: 100, default: 20}}
       responses:
         "200": {description: Leads assigned to the matching person}
+  /reports/today:
+    get:
+      operationId: getTodaysCRMReport
+      description: Use first for today's update, daily report, or overall CRM summary.
+      responses:
+        "200": {description: Today's CRM counts}
+  /learners/latest:
+    get:
+      operationId: getLatestLearners
+      description: Get the most recently created learner enrolments.
+      parameters:
+        - {name: limit, in: query, schema: {type: integer, minimum: 1, maximum: 100, default: 20}}
+      responses: {"200": {description: Latest learners}}
+  /learners/today:
+    get:
+      operationId: getTodaysLearners
+      description: Get learner enrolments created today.
+      parameters:
+        - {name: limit, in: query, schema: {type: integer, minimum: 1, maximum: 100, default: 20}}
+      responses: {"200": {description: Today's learners}}
+  /learners/search:
+    get:
+      operationId: searchLearners
+      description: Search learners by name, phone, email, or enrolment number.
+      parameters:
+        - {name: query, in: query, required: true, schema: {type: string, minLength: 2, maxLength: 200}}
+        - {name: limit, in: query, schema: {type: integer, minimum: 1, maximum: 100, default: 20}}
+      responses: {"200": {description: Matching learners}}
+  /messages/latest:
+    get:
+      operationId: getLatestMessages
+      description: Get recent WhatsApp, email, or voice messages, optionally inbound or outbound.
+      parameters:
+        - {name: channel, in: query, schema: {type: string, enum: [whatsapp, email, voice]}}
+        - {name: direction, in: query, schema: {type: string, enum: [inbound, outbound]}}
+        - {name: limit, in: query, schema: {type: integer, minimum: 1, maximum: 100, default: 20}}
+      responses: {"200": {description: Latest messages}}
+  /messages/today:
+    get:
+      operationId: getTodaysMessages
+      description: Get today's WhatsApp, email, or voice messages, optionally inbound or outbound.
+      parameters:
+        - {name: channel, in: query, schema: {type: string, enum: [whatsapp, email, voice]}}
+        - {name: direction, in: query, schema: {type: string, enum: [inbound, outbound]}}
+        - {name: limit, in: query, schema: {type: integer, minimum: 1, maximum: 100, default: 20}}
+      responses: {"200": {description: Today's messages}}
+  /conversations/latest:
+    get:
+      operationId: getLatestConversations
+      description: Get recent conversations with contact, last-message, unread, and assignee context.
+      parameters:
+        - {name: channel, in: query, schema: {type: string, enum: [whatsapp, email, voice]}}
+        - {name: limit, in: query, schema: {type: integer, minimum: 1, maximum: 100, default: 20}}
+      responses: {"200": {description: Latest conversations}}
+  /activities/today:
+    get:
+      operationId: getTodaysActivities
+      description: Get today's operational CRM activity timeline.
+      parameters:
+        - {name: limit, in: query, schema: {type: integer, minimum: 1, maximum: 100, default: 50}}
+      responses: {"200": {description: Today's CRM activities}}

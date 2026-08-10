@@ -4,7 +4,7 @@ from fastapi import Depends, FastAPI, Query
 
 from app import database
 from app.auth import require_api_key
-from app.services import leads
+from app.services import leads, reporting
 
 
 @asynccontextmanager
@@ -65,3 +65,35 @@ def get_leads_by_assignee(
     person: str, limit: int = Query(20, ge=1, le=100), _: None = Depends(require_api_key)
 ):
     return {"leads": leads.by_assignee(person, limit), "person": person, "limit": limit}
+
+@app.get("/reports/today", operation_id="getTodaysCRMReport", tags=["Reports"])
+def get_todays_crm_report(_: None = Depends(require_api_key)):
+    return reporting.today_report()
+
+@app.get("/learners/latest", operation_id="getLatestLearners", tags=["Learners"])
+def get_latest_learners(limit: int = Query(20, ge=1, le=100), _: None = Depends(require_api_key)):
+    return {"learners": reporting.learners(limit), "limit": limit}
+
+@app.get("/learners/today", operation_id="getTodaysLearners", tags=["Learners"])
+def get_todays_learners(limit: int = Query(20, ge=1, le=100), _: None = Depends(require_api_key)):
+    return {"learners": reporting.learners(limit, today_only=True), "limit": limit}
+
+@app.get("/learners/search", operation_id="searchLearners", tags=["Learners"])
+def search_learners(query: str = Query(..., min_length=2, max_length=200), limit: int = Query(20, ge=1, le=100), _: None = Depends(require_api_key)):
+    return {"learners": reporting.learners(limit, query=query), "query": query, "limit": limit}
+
+@app.get("/messages/latest", operation_id="getLatestMessages", tags=["Communications"])
+def get_latest_messages(channel: str | None = Query(None, pattern="^(whatsapp|email|voice)$"), direction: str | None = Query(None, pattern="^(inbound|outbound)$"), limit: int = Query(20, ge=1, le=100), _: None = Depends(require_api_key)):
+    return {"messages": reporting.messages(limit, channel, direction, False), "limit": limit}
+
+@app.get("/messages/today", operation_id="getTodaysMessages", tags=["Communications"])
+def get_todays_messages(channel: str | None = Query(None, pattern="^(whatsapp|email|voice)$"), direction: str | None = Query(None, pattern="^(inbound|outbound)$"), limit: int = Query(20, ge=1, le=100), _: None = Depends(require_api_key)):
+    return {"messages": reporting.messages(limit, channel, direction, True), "limit": limit}
+
+@app.get("/conversations/latest", operation_id="getLatestConversations", tags=["Communications"])
+def get_latest_conversations(channel: str | None = Query(None, pattern="^(whatsapp|email|voice)$"), limit: int = Query(20, ge=1, le=100), _: None = Depends(require_api_key)):
+    return {"conversations": reporting.conversations(limit, channel), "limit": limit}
+
+@app.get("/activities/today", operation_id="getTodaysActivities", tags=["Reports"])
+def get_todays_activities(limit: int = Query(50, ge=1, le=100), _: None = Depends(require_api_key)):
+    return {"activities": reporting.activities_today(limit), "limit": limit}
