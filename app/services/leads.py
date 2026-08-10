@@ -8,8 +8,13 @@ from app.database import get_connection
 
 SELECT_LEAD = """
 SELECT l.work_item_id AS id, wi.number AS lead_number, p.name, p.phone, p.email,
-       wi.created_at, l.lead_status, l.stage, l.stage_label, l.source,
-       l.source_label, l.program, l.heat, l.score, assignee.name AS assigned_to
+       p.city, p.phone_country_code, wi.created_at, wi.updated_at,
+       wi.state AS workflow_state, wi.priority, l.lead_status, l.stage,
+       l.stage_label, l.source, l.source_label, l.source_url, l.program,
+       program.name AS program_name, l.heat, l.score, l.score_label,
+       l.score_desc, l.value, l.rating, l.description, l.delivery_mode,
+       l.time_zone, l.next_followup_at, l.demo_attended_at, l.visited_date,
+       l.visiting_date, assignee.name AS assigned_to, advisor.name AS advisor
 FROM public.lead AS l
 JOIN public.work_item AS wi
   ON wi.id = l.work_item_id AND wi.tenant_id = l.tenant_id
@@ -17,6 +22,10 @@ LEFT JOIN public.party AS p
   ON p.id = wi.party_id AND p.tenant_id = l.tenant_id
 LEFT JOIN public.party AS assignee
   ON assignee.id = wi.assignee_id AND assignee.tenant_id = l.tenant_id
+LEFT JOIN public.party AS advisor
+  ON advisor.id = l.advisor_id AND advisor.tenant_id = l.tenant_id
+LEFT JOIN public.program AS program
+  ON program.id = l.program_id AND program.tenant_id = l.tenant_id
 """
 
 

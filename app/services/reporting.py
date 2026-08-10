@@ -31,11 +31,17 @@ def learners(limit: int, today_only: bool = False, query: str | None = None):
         params.extend([f"%{query}%"] * 4)
     params.append(limit)
     return _rows("""SELECT e.id, e.number AS enrolment_number, p.name, p.phone, p.email,
-      e.status, e.payment_status, e.registered_date, e.created_at,
-      e.fee_quoted, e.fee_paid, e.fee_due, pr.name AS program, c.name AS cohort
+      p.city, e.status, e.payment_status, e.registered_date, e.created_at,
+      e.fee_quoted, e.fee_paid, e.fee_due, e.due_date, e.payment_verified_at,
+      pr.name AS program, c.name AS cohort, c.start_date AS cohort_start_date,
+      c.end_date AS cohort_end_date, c.schedule AS cohort_schedule,
+      lp.number AS learner_number, lp.skill_level, lp.placement_status,
+      lp.placed_company, lp.placed_at, lp.status AS learner_status, mentor.name AS mentor
       FROM public.enrolment e JOIN public.party p ON p.id=e.party_id AND p.tenant_id=e.tenant_id
       LEFT JOIN public.program pr ON pr.id=e.program_id AND pr.tenant_id=e.tenant_id
       LEFT JOIN public.cohort c ON c.id=e.cohort_id AND c.tenant_id=e.tenant_id
+      LEFT JOIN public.learner_profile lp ON lp.party_id=e.party_id AND lp.tenant_id=e.tenant_id
+      LEFT JOIN public.party mentor ON mentor.id=lp.mentor_party_id AND mentor.tenant_id=e.tenant_id
       WHERE """ + " AND ".join(filters) + " ORDER BY e.created_at DESC LIMIT %s", tuple(params))
 
 
@@ -52,14 +58,16 @@ def messages(limit: int, channel: str | None, direction: str | None, today_only:
         filters.append("(COALESCE(m.sent_at, m.delivered_at, c.last_message_at) AT TIME ZONE %s)::date = (CURRENT_TIMESTAMP AT TIME ZONE %s)::date")
         params.extend([_tz(), _tz()])
     params.append(limit)
-    return _rows("""SELECT m.id, m.channel, m.direction, m.kind, m.status, m.subject,
+    return _rows("""SELECT m.id, m.conversation_id, m.channel, m.direction, m.kind, m.status, m.subject,
       left(m.body, 500) AS message_preview, m.from_number, m.to_number,
-      m.sent_at, m.delivered_at, p.name AS contact_name, p.phone AS contact_phone,
-      sender.name AS sent_by
+      m.to_addrs, m.cc_addrs, m.sent_at, m.delivered_at, m.error_code, m.error_message,
+      p.name AS contact_name, p.phone AS contact_phone, p.email AS contact_email,
+      sender.name AS sent_by, c.status AS conversation_status, c.unread_count, campaign.name AS campaign
       FROM public.tw_message m JOIN public.tw_conversation c
         ON c.id=m.conversation_id AND c.tenant_id=m.tenant_id
       LEFT JOIN public.party p ON p.id=c.party_id AND p.tenant_id=m.tenant_id
       LEFT JOIN public.party sender ON sender.id=m.sender_user_id AND sender.tenant_id=m.tenant_id
+      LEFT JOIN public.campaign campaign ON campaign.id=m.campaign_id AND campaign.tenant_id=m.tenant_id
       WHERE """ + " AND ".join(filters) + " ORDER BY COALESCE(m.sent_at,m.delivered_at,c.last_message_at) DESC NULLS LAST LIMIT %s", tuple(params))
 
 
@@ -68,7 +76,7 @@ def conversations(limit: int, channel: str | None):
     params: tuple[Any, ...] = (_tenant(), channel, limit) if channel else (_tenant(), limit)
     return _rows("""SELECT c.id, c.channel, c.status, p.name AS contact_name, p.phone,
       p.email, c.last_message_text, c.last_message_at, c.last_inbound_at,
-      c.unread_count, assignee.name AS assigned_to
+      c.unread_count, c.is_unlinked, c.created_at, c.updated_at, assignee.name AS assigned_to
       FROM public.tw_conversation c
       LEFT JOIN public.party p ON p.id=c.party_id AND p.tenant_id=c.tenant_id
       LEFT JOIN public.party assignee ON assignee.id=c.assigned_user_id AND assignee.tenant_id=c.tenant_id

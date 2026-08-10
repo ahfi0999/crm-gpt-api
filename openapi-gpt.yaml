@@ -13,6 +13,7 @@ components:
   schemas:
     Lead:
       type: object
+      additionalProperties: true
       properties:
         id: {type: string, format: uuid}
         lead_number: {type: string}
