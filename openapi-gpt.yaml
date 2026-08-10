@@ -1,0 +1,83 @@
+openapi: 3.1.0
+info:
+  title: CRM Lead API
+  version: 1.0.0
+  description: Read-only live CRM lead lookup API.
+servers:
+  - url: https://crm-gpt-api.onrender.com
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+  schemas:
+    Lead:
+      type: object
+      additionalProperties: true
+    LeadList:
+      type: object
+      properties:
+        leads: {type: array, items: {$ref: "#/components/schemas/Lead"}}
+        limit: {type: integer}
+      required: [leads, limit]
+security:
+  - bearerAuth: []
+paths:
+  /health:
+    get:
+      operationId: healthCheck
+      description: Check whether the CRM bridge is running.
+      security: []
+      responses:
+        "200": {description: Healthy}
+  /leads/latest:
+    get:
+      operationId: getLatestLeads
+      description: Use for latest or most recently created leads.
+      parameters:
+        - {name: limit, in: query, schema: {type: integer, minimum: 1, maximum: 100, default: 10}}
+      responses:
+        "200":
+          description: Latest leads
+          content: {application/json: {schema: {$ref: "#/components/schemas/LeadList"}}}
+  /leads/today:
+    get:
+      operationId: getTodaysLeads
+      description: Use when the user asks to show leads created today.
+      parameters:
+        - {name: limit, in: query, schema: {type: integer, minimum: 1, maximum: 100, default: 20}}
+      responses:
+        "200": {description: Today's leads}
+  /leads/count/today:
+    get:
+      operationId: getTodaysLeadCount
+      description: Use when the user asks how many leads were created today.
+      responses:
+        "200": {description: Today's lead count}
+  /leads/search:
+    get:
+      operationId: searchLeads
+      description: Search live leads by name, phone, email, or lead number.
+      parameters:
+        - {name: query, in: query, required: true, schema: {type: string, minLength: 2, maxLength: 200}}
+        - {name: limit, in: query, schema: {type: integer, minimum: 1, maximum: 100, default: 20}}
+      responses:
+        "200": {description: Matching leads}
+  /leads/status/{status}:
+    get:
+      operationId: getLeadsByStatus
+      description: Use for leads in a named status or stage, such as converted.
+      parameters:
+        - {name: status, in: path, required: true, schema: {type: string}}
+        - {name: limit, in: query, schema: {type: integer, minimum: 1, maximum: 100, default: 20}}
+      responses:
+        "200": {description: Leads matching the status}
+  /leads/assigned/{person}:
+    get:
+      operationId: getLeadsByAssignee
+      description: Use when the user asks for leads assigned to a named person.
+      parameters:
+        - {name: person, in: path, required: true, schema: {type: string}}
+        - {name: limit, in: query, schema: {type: integer, minimum: 1, maximum: 100, default: 20}}
+      responses:
+        "200": {description: Leads assigned to the matching person}

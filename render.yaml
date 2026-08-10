@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: crm-gpt-api
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: DB_HOST
+        sync: false
+      - key: DB_PORT
+        value: "5432"
+      - key: DB_NAME
+        sync: false
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: CRM_TENANT_ID
+        value: 7b40dde3-9d9e-4ee7-baff-1eee805b99c2
+      - key: CRM_TIMEZONE
+        value: Asia/Kolkata
+      - key: CRM_API_KEY
+        generateValue: true
