@@ -71,16 +71,24 @@ def messages(limit: int, channel: str | None, direction: str | None, today_only:
       WHERE """ + " AND ".join(filters) + " ORDER BY COALESCE(m.sent_at,m.delivered_at,c.last_message_at) DESC NULLS LAST LIMIT %s", tuple(params))
 
 
-def conversations(limit: int, channel: str | None):
-    channel_sql = " AND c.channel = %s" if channel else ""
-    params: tuple[Any, ...] = (_tenant(), channel, limit) if channel else (_tenant(), limit)
+def conversations(limit: int, channel: str | None, unread_only: bool = False):
+    filters = ["c.tenant_id=%s"]
+    params: list[Any] = [_tenant()]
+    if channel:
+        filters.append("c.channel=%s")
+        params.append(channel)
+    if unread_only:
+        filters.append("c.unread_count > 0")
+    params.append(limit)
     return _rows("""SELECT c.id, c.channel, c.status, p.name AS contact_name, p.phone,
       p.email, c.last_message_text, c.last_message_at, c.last_inbound_at,
       c.unread_count, c.is_unlinked, c.created_at, c.updated_at, assignee.name AS assigned_to
       FROM public.tw_conversation c
       LEFT JOIN public.party p ON p.id=c.party_id AND p.tenant_id=c.tenant_id
       LEFT JOIN public.party assignee ON assignee.id=c.assigned_user_id AND assignee.tenant_id=c.tenant_id
-      WHERE c.tenant_id=%s""" + channel_sql + " ORDER BY c.last_message_at DESC NULLS LAST LIMIT %s", params)
+      WHERE """ + " AND ".join(filters) +
+      " ORDER BY c.unread_count DESC, c.last_message_at DESC NULLS LAST LIMIT %s",
+      tuple(params))
 
 
 def activities_today(limit: int):

@@ -109,6 +109,12 @@ def get_todays_messages(channel: str | None = Query(None, pattern="^(whatsapp|em
 def get_latest_conversations(channel: str | None = Query(None, pattern="^(whatsapp|email|voice)$"), limit: int = Query(20, ge=1, le=100), _: None = Depends(require_api_key)):
     return {"conversations": reporting.conversations(limit, channel), "limit": limit}
 
+
+@app.get("/conversations/unread", operation_id="getUnreadConversations", tags=["Communications"])
+def get_unread_conversations(channel: str | None = Query(None, pattern="^(whatsapp|email|voice)$"), limit: int = Query(100, ge=1, le=100), _: None = Depends(require_api_key)):
+    records = reporting.conversations(limit, channel, unread_only=True)
+    return {"conversations": records, "returned": len(records), "limit": limit}
+
 @app.get("/activities/today", operation_id="getTodaysActivities", tags=["Reports"])
 def get_todays_activities(limit: int = Query(50, ge=1, le=100), _: None = Depends(require_api_key)):
     return {"activities": reporting.activities_today(limit), "limit": limit}

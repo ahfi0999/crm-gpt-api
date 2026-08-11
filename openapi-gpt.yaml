@@ -159,6 +159,14 @@ paths:
         - {name: channel, in: query, schema: {type: string, enum: [whatsapp, email, voice]}}
         - {name: limit, in: query, schema: {type: integer, minimum: 1, maximum: 100, default: 20}}
       responses: {"200": {description: Latest conversations}}
+  /conversations/unread:
+    get:
+      operationId: getUnreadConversations
+      description: Use whenever the user asks for unread conversations. Returns only conversations whose unread_count is greater than zero.
+      parameters:
+        - {name: channel, in: query, schema: {type: string, enum: [whatsapp, email, voice]}}
+        - {name: limit, in: query, schema: {type: integer, minimum: 1, maximum: 100, default: 100}}
+      responses: {"200": {description: Unread conversations ordered by unread count and recency}}
   /activities/today:
     get:
       operationId: getTodaysActivities

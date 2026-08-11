@@ -21,6 +21,7 @@ For “today's update”, “daily report”, or an overall status request, call
 - “today's WhatsApp updates” → `getTodaysMessages` with `channel=whatsapp`.
 - “emails received today” → `getTodaysMessages` with `channel=email`, `direction=inbound`.
 - “latest WhatsApp conversations” → `getLatestConversations` with `channel=whatsapp`.
+- “unread conversations” → always call `getUnreadConversations`; do not infer unread records from `getLatestConversations`.
 - “what activity happened today?” → `getTodaysActivities`.
 
 For daily reports, give an executive summary first, then concise tables grouped under Leads, Learners, Communications, and Activities. This API is read-only: never claim it can create, edit, send, or delete records.
