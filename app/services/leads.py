@@ -45,8 +45,20 @@ def _fetch(sql: str, params: tuple[Any, ...]) -> list[dict[str, Any]]:
         return [dict(row) for row in connection.execute(sql, params).fetchall()]
 
 
-def latest(limit: int) -> list[dict[str, Any]]:
-    return _fetch(SELECT_LEAD + " WHERE l.tenant_id = %s ORDER BY wi.created_at DESC LIMIT %s", (_tenant_id(), limit))
+def latest(limit: int, offset: int = 0) -> list[dict[str, Any]]:
+    return _fetch(
+        SELECT_LEAD + " WHERE l.tenant_id = %s ORDER BY wi.created_at DESC LIMIT %s OFFSET %s",
+        (_tenant_id(), limit, offset),
+    )
+
+
+def total_count() -> int:
+    with get_connection() as connection:
+        row = connection.execute(
+            "SELECT count(*) AS count FROM public.lead WHERE tenant_id = %s",
+            (_tenant_id(),),
+        ).fetchone()
+        return int(row["count"])
 
 
 def today(limit: int) -> list[dict[str, Any]]:

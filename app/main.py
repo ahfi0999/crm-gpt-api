@@ -30,8 +30,23 @@ def health() -> dict[str, str]:
 
 
 @app.get("/leads/latest", operation_id="getLatestLeads", tags=["Leads"])
-def get_latest_leads(limit: int = Query(10, ge=1, le=100), _: None = Depends(require_api_key)):
-    return {"leads": leads.latest(limit), "limit": limit}
+def get_latest_leads(
+    limit: int = Query(10, ge=1, le=100),
+    offset: int = Query(0, ge=0),
+    _: None = Depends(require_api_key),
+):
+    records = leads.latest(limit, offset)
+    total = leads.total_count()
+    next_offset = offset + len(records)
+    has_more = next_offset < total
+    return {"leads": records, "limit": limit, "offset": offset,
+            "returned": len(records), "total": total, "has_more": has_more,
+            "next_offset": next_offset if has_more else None}
+
+
+@app.get("/leads/count", operation_id="getTotalLeadCount", tags=["Leads"])
+def get_total_lead_count(_: None = Depends(require_api_key)):
+    return {"count": leads.total_count()}
 
 
 @app.get("/leads/today", operation_id="getTodaysLeads", tags=["Leads"])

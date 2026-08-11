@@ -53,10 +53,17 @@ paths:
       description: Use for latest or most recently created leads.
       parameters:
         - {name: limit, in: query, schema: {type: integer, minimum: 1, maximum: 100, default: 10}}
+        - {name: offset, in: query, description: Start position; follow next_offset from the previous response., schema: {type: integer, minimum: 0, default: 0}}
       responses:
         "200":
           description: Latest leads
           content: {application/json: {schema: {$ref: "#/components/schemas/LeadList"}}}
+  /leads/count:
+    get:
+      operationId: getTotalLeadCount
+      description: Get the total lead count before retrieving all paginated batches.
+      responses:
+        "200": {description: Total lead count}
   /leads/today:
     get:
       operationId: getTodaysLeads
